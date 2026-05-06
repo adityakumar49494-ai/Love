@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Món Quà Đặc Biệt Cho Bạn 💕</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Quicksand:wght@400;600;700&display=swap');
+
+  :root {
+    --pink: #ff6b9d;
+    --deep-pink: #e91e63;
+    --light-pink: #fce4ec;
+    --purple: #9c27b0;
+    --gold: #ffd700;
+    --white: #fff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Quicksand', sans-serif;
+    background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 40%, #1a0a2e 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: var(--white);
+  }
+
+  #rainCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #countdownScreen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #2d1b4e 0%, #0d0621 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.8s ease;
+  }
+
+  #countdownScreen.hide {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .countdown-gif-placeholder {
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 4px solid var(--pink);
+    background: linear-gradient(135deg, #e91e63, #9c27b0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px;
+    animation: pulse 1.5s infinite;
+    margin-bottom: 24px;
+  }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 20px rgba(233,30,99,0.5); transform: scale(1); }
+    50% { box-shadow: 0 0 40px rgba(233,30,99,0.9); transform: scale(1.05); }
+  }
+
+  #countdownNum {
+    font-family: 'Dancing Script', cursive;
+    font-size: 96px;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(255,215,0,0.8);
+    animation: countAnim 1s ease-in-out;
+  }
+
+  @keyframes countAnim {
+    0% { transform: scale(1.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .countdown-label {
+    font-size: 18px;
+    color: var(--light-pink);
+    margin-top: 12px;
+    opacity: 0.8;
+  }
+
+  #mainContent {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  #mainContent.show { display: flex; }
+
+  .main-title-wrap {
+    text-align: center;
+    margin: 20px 0 30px;
+  }
+
+  #mainTitle {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(28px, 6vw, 52px);
+    background: linear-gradient(90deg, var(--gold), var(--pink), var(--purple), var(--gold));
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+    line-height: 1.3;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 300% center; }
+  }
+
+  .book-container {
+    perspective: 1200px;
+    width: min(90vw, 500px);
+    height: min(70vw, 380px);
+    margin: 10px auto;
+  }
+
+  .book {
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+  }
+
+  .page {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    top: 0;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+    border-radius: 0 12px 12px 0;
+    cursor: pointer;
+  }
+
+  .page .front, .page .back {
+    position: absolute;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 0 12px 12px 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .page .back {
+    transform: rotateY(180deg);
+    border-radius: 12px 0 0 12px;
+  }
+
+  .page-1 .front { background: linear-gradient(135deg, #ff9a9e, #fad0c4); color: #5d0d2f; }
+  .page-1 .back  { background: linear-gradient(135deg, #fbc2eb, #a18cd1); color: #2d1b4e; }
+  .page-2 .front { background: linear-gradient(135deg, #a18cd1, #fbc2eb); color: #2d1b4e; }
+  .page-2 .back  { background: linear-gradient(135deg, #fad0c4, #ff9a9e); color: #5d0d2f; }
+  .page-3 .front { background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #5d0d2f; }
+  .page-3 .back  { background: linear-gradient(135deg, #ff9a9e, #fecfef); color: #5d0d2f; }
+
+  .page.flipped { transform: rotateY(-180deg); }
+
+  .left-cover {
+    position: absolute;
+    left: 0; top: 0;
+    width: 50%; height: 100%;
+    background: linear-gradient(135deg, #c0392b, #8e0000);
+    border-radius: 12px 0 0 12px;
+    z-index: -1;
+    box-shadow: -5px 5px 20px rgba(0,0,0,0.4);
+  }
+
+  .right-cover {
+    position: absolute;
+    right: 0; top: 0;
+    width: 50%; height: 100%;
+    background: linear-gradient(135deg, #8e0000, #c0392b);
+    border-radius: 0 12px 12px 0;
+    z-index: -1;
+    box-shadow: 5px 5px 20px rgba(0,0,0,0.4);
+  }
+
+  .page-text {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(14px, 3vw, 20px);
+    line-height: 1.7;
+  }
+
+  .page-emoji { font-size: 36px; margin-bottom: 10px; }
+
+  .page-nav {
+    display: flex; gap: 16px; margin-top: 20px;
+  }
+
+  .page-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+    backdrop-filter: blur(6px);
+  }
+
+  .page-btn:hover { background: rgba(255,255,255,0.35); transform: translateY(-2px); }
+
+  .hearts-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+  }
+
+  .heart-particle {
+    position: absolute;
+    font-size: 20px;
+    animation: floatHeart linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes floatHeart {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-100vh) scale(1.2) rotate(20deg); }
+  }
+
+  .audio-player {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100;
+    min-width: 200px;
+  }
+
+  .audio-icon {
+    font-size: 22px;
+    animation: spin 3s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .audio-btn {
+    background: var(--deep-pink);
+    border: none;
+    color: white;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+
+  .audio-btn:hover { background: var(--purple); transform: scale(1.1); }
+
+  .settings-toggle {
+    position: fixed;
+    top: 16px; right: 16px;
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 22px;
+    z-index: 200;
+    transition: all 0.3s;
+  }
+
+  .settings-toggle:hover { background: rgba(255,255,255,0.25); transform: rotate(45deg); }
+
+  .settings-panel {
+    position: fixed;
+    top: 0; right: -360px;
+    width: 340px;
+    height: 100vh;
+    background: rgba(15, 8, 35, 0.97);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.15);
+    z-index: 300;
+    transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .settings-panel.open { right: 0; }
+
+  .settings-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 299;
+    display: none;
+  }
+
+  .settings-overlay.show { display: block; }
+
+  .settings-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .settings-header h2 { font-size: 18px; color: var(--gold); }
+
+  .close-btn {
+    background: none; border: none; color: var(--white);
+    font-size: 22px; cursor: pointer; opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .close-btn:hover { opacity: 1; }
+
+  .settings-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .settings-section h3 {
+    font-size: 14px;
+    color: var(--pink);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .form-group { margin-bottom: 14px; }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+  }
+
+  .form-group input[type=text],
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .form-group input[type=text]:focus,
+  .form-group textarea:focus,
+  .form-group select:focus { border-color: var(--pink); }
+
+  .form-group textarea { min-height: 70px; resize: vertical; }
+  .form-group select option { background: #1a0a2e; }
+
+  .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .swatch {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .swatch.active, .swatch:hover { border-color: white; transform: scale(1.15); }
+
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+  }
+
+  .toggle { position: relative; width: 44px; height: 24px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.2);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--deep-pink); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  .apply-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--deep-pink), var(--purple));
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 8px;
+  }
+
+  .apply-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(233,30,99,0.4); }
+
+  .credit {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    padding-bottom: 80px;
+  }
+
+  .credit a { color: var(--pink); text-decoration: none; }
+
+  .lang-toggle {
+    position: fixed;
+    top: 16px; left: 16px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    z-index: 200;
+    color: white;
+    font-weight: 600;
+  }
+
+  .music-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .music-item {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .music-item:hover, .music-item.selected {
+    background: rgba(233,30,99,0.2);
+    border-color: var(--pink);
+    color: white;
+  }
+
+  .music-item .music-icon { font-size: 16px; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<canvas id="rainCanvas"></canvas>
+<div class="hearts-container" id="heartsContainer"></div>
+
+<!-- Countdown -->
+<div id="countdownScreen">
+  <div class="countdown-gif-placeholder">💕</div>
+  <div id="countdownNum">5</div>
+  <div class="countdown-label">Đang chuẩn bị điều bí mật cho bạn...</div>
+</div>
+
+<div class="lang-toggle" id="langToggle">EN/VI</div>
+<div class="settings-toggle" id="settingsToggle">⚙</div>
+<div class="settings-overlay" id="settingsOverlay"></div>
+
+<!-- Settings Panel -->
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-header">
+    <h2>⚙️ Cài Đặt Trang Web</h2>
+    <button class="close-btn" id="closeSettings">✕</button>
+  </div>
+
+  <div class="settings-section">
+    <h3>🎵 Cài Đặt Âm Thanh</h3>
+    <div class="form-group">
+      <label>Nhạc Nền:</label>
+      <div class="music-list" id="musicList">
+        <div class="music-item selected" data-src="" onclick="selectMusic(this)">
+          <span class="music-icon">🎶</span> Love Song (Default)
+        </div>
+        <div class="music-item" data-src="" onclick="selectMusic(this)">
+          <span class="music-icon">🎵</span> Romantic Ballad
+        </div>
+        <div class="music-item" data-src="" onclick="selectMusic(this)">
+          <span class="music-icon">🎸</span> Chill Vibes
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>⏰ Cài Đặt Thời Gian</h3>
+    <div class="form-group">
+      <label>Thời Gian Đếm Ngược:</label>
+      <select id="countdownSelect">
+        <option value="3">3 giây</option>
+        <option value="5" selected>5 giây</option>
+        <option value="10">10 giây</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>🌧️ Cài Đặt Hiệu Ứng Mưa Chữ</h3>
+    <div class="form-group">
+      <label>Chữ mưa chính:</label>
+      <input type="text" id="rainTextInput" value="💕 I Love You ❤️" />
+    </div>
+    <div class="form-group">
+      <label>Màu mưa chữ:</label>
+      <div class="color-swatches">
+        <div class="swatch active" style="background:#ff6b9d" onclick="setRainColor('#ff6b9d', this)"></div>
+        <div class="swatch" style="background:#42a5f5" onclick="setRainColor('#42a5f5', this)"></div>
+        <div class="swatch" style="background:#ce93d8" onclick="setRainColor('#ce93d8', this)"></div>
+        <div class="swatch" style="background:#ffd700" onclick="setRainColor('#ffd700', this)"></div>
+        <div class="swatch" style="background:#a5d6a7" onclick="setRainColor('#a5d6a7', this)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>✨ Cài Đặt Chữ Chính</h3>
+    <div class="form-group">
+      <label>Nội Dung (ngăn cách bằng |):</label>
+      <textarea id="mainTextInput">I Love You 💕|Anh yêu em ❤️|You mean everything to me 🌹|Mãi mãi bên nhau 💖</textarea>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>🎁 Cài Đặt Trang Sách</h3>
+    <div class="toggle-row">
+      <span>Hiển thị sách:</span>
+      <label class="toggle">
+        <input type="checkbox" id="showBookToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="toggle-row">
+      <span>Hiệu ứng trái tim:</span>
+      <label class="toggle">
+        <input type="checkbox" id="showHeartsToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>📖 Nội Dung Trang Sách</h3>
+    <div class="form-group">
+      <label>Trang 1:</label>
+      <textarea id="page1Text">Em là tất cả của anh. Mỗi ngày bên em là một ngày hạnh phúc nhất cuộc đời anh. I love you! 💕</textarea>
+    </div>
+    <div class="form-group">
+      <label>Trang 2:</label>
+      <textarea id="page2Text">Anh yêu em không chỉ bằng lời nói mà bằng cả trái tim. Em luôn là người đặc biệt nhất với anh. ❤️</textarea>
+    </div>
+    <div class="form-group">
+      <label>Trang 3:</label>
+      <textarea id="page3Text">Dù thời gian có trôi qua, tình yêu của anh dành cho em sẽ mãi mãi không thay đổi. 🌹</textarea>
+    </div>
+  </div>
+
+  <button class="apply-btn" onclick="applySettings()">🎉 Áp Dụng Cài Đặt</button>
+
+  <div class="credit" style="margin-top:16px; padding-bottom:16px;">
+    Website được tạo bởi tiktok: <a href="https://www.tiktok.com/@iamtritoan" target="_blank">iamtritoan</a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div id="mainContent">
+  <div class="main-title-wrap">
+    <div id="mainTitle">I Love You 💕</div>
+  </div>
+
+  <div class="book-container" id="bookWrapper">
+    <div class="book" id="book">
+      <div class="left-cover"></div>
+      <div class="right-cover"></div>
+
+      <div class="page page-1" id="page1" style="z-index:3" onclick="flipPage(1)">
+        <div class="front">
+          <div class="page-emoji">💕</div>
+          <div class="page-text" id="page1Front">Em là tất cả của anh. Mỗi ngày bên em là một ngày hạnh phúc nhất cuộc đời anh. I love you!</div>
+        </div>
+        <div class="back">
+          <div class="page-emoji">❤️</div>
+          <div class="page-text" id="page2Front">Anh yêu em không chỉ bằng lời nói mà bằng cả trái tim. Em luôn là người đặc biệt nhất với anh.</div>
+        </div>
+      </div>
+
+      <div class="page page-2" id="page2" style="z-index:2" onclick="flipPage(2)">
+        <div class="front">
+          <div class="page-emoji">🌹</div>
+          <div class="page-text" id="page3Front">Dù thời gian có trôi qua, tình yêu của anh dành cho em sẽ mãi mãi không thay đổi.</div>
+        </div>
+        <div class="back">
+          <div class="page-emoji">💖</div>
+          <div class="page-text">Em là ánh sáng trong cuộc đời anh. Anh yêu em mãi mãi! 💕</div>
+        </div>
+      </div>
+
+      <div class="page page-3" id="page3" style="z-index:1" onclick="flipPage(3)">
+        <div class="front">
+          <div class="page-emoji">🥰</div>
+          <div class="page-text">Mỗi khoảnh khắc bên em đều là kỷ niệm đẹp nhất trong cuộc đời anh. 💑</div>
+        </div>
+        <div class="back">
+          <div class="page-emoji">💝</div>
+          <div class="page-text">I Love You... hôm nay, ngày mai và mãi mãi! ❤️✨</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <button class="page-btn" onclick="prevPage()">← Trước</button>
+    <button class="page-btn" onclick="nextPage()">Tiếp →</button>
+  </div>
+
+  <div class="credit">
+    Website được tạo bởi tiktok: <a href="https://www.tiktok.com/@iamtritoan" target="_blank">iamtritoan</a>
+  </div>
+</div>
+
+<!-- Audio Player -->
+<div class="audio-player" id="audioPlayer" style="display:none">
+  <span class="audio-icon">🎵</span>
+  <audio id="bgAudio" loop>
+    <source src="" type="audio/mpeg">
+  </audio>
+  <button class="audio-btn" id="playPauseBtn" onclick="toggleAudio()">▶</button>
+  <span style="font-size:13px; opacity:0.8;">Nhạc nền</span>
+</div>
+
+<script>
+let config = {
+  countdownTime: 5,
+  rainText: '💕 I Love You ❤️',
+  rainColor: '#ff6b9d',
+  mainTexts: ['I Love You 💕','Anh yêu em ❤️','You mean everything to me 🌹','Mãi mãi bên nhau 💖'],
+  showBook: true,
+  showHearts: true,
+  lang: 'vi',
+  pageTexts: [
+    'Em là tất cả của anh. Mỗi ngày bên em là một ngày hạnh phúc nhất cuộc đời anh. I love you! 💕',
+    'Anh yêu em không chỉ bằng lời nói mà bằng cả trái tim. Em luôn là người đặc biệt nhất với anh. ❤️',
+    'Dù thời gian có trôi qua, tình yêu của anh dành cho em
